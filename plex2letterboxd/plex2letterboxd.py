@@ -28,12 +28,30 @@ def parse_args() -> argparse.Namespace:
         argparse.Namespace: Namespace object with all arguments.
     """
     about: str = 'Export watched Plex movies to the Letterboxd import format.'
-    parser: argparse.ArgumentParser = argparse.ArgumentParser(description=about, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-i', '--ini', default='config.ini', help='config file')
-    parser.add_argument('-o', '--output', default='letterboxd.csv', help='file to output to')
-    parser.add_argument('-s', '--sections', default=['Movies'], nargs='+', help='sections to grab from')
-    parser.add_argument('-m', '--managed-user', help='name of managed user to export')
-    return parser.parse_args()
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(description=about,
+                                                              formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # Create mutually exclusive group
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument('-i',  '--ini', help='Config file')
+    group.add_argument('-b',  '--base-url', help='Plex server base URL')
+    parser.add_argument('-t', '--token', help='Plex server token')
+
+    parser.add_argument('-o', '--output', default='letterboxd.csv', help='File to output to')
+    parser.add_argument('-s', '--sections', default=['Movies'], nargs='+', help='Sections to grab from')
+    parser.add_argument('-m', '--managed-user', help='Name of managed user to export')
+
+    args = parser.parse_args()
+
+    # If base-url is provided, token must also be provided
+    if args.base_url and not args.token:
+        parser.error("--token must be provided if --base-url is used")
+
+    # If ini file is not provided, base-url and token must be provided
+    if not args.ini and (not args.base_url or not args.token):
+        parser.error("--base-url and --token must be provided if --ini is not used")
+
+    return args
 
 
 def parse_config(ini: str) -> configparser.SectionProxy:
@@ -52,6 +70,8 @@ def parse_config(ini: str) -> configparser.SectionProxy:
     config: configparser.ConfigParser = configparser.ConfigParser()
     try:
         config.read(ini)
+        if not config.has_section(CONFIG_AUTH):
+            raise configparser.Error(f"Missing '{CONFIG_AUTH}' section in config file")
     except configparser.Error as e:
         logger.error(f"Failed to parse config file: {e}")
         sys.exit(1)

@@ -5,10 +5,10 @@ with open('README.md') as f:
 
 setup(
     name='plex2letterboxd',
-    url='https://github.com/mtimkovich/plex2letterboxd',
-    version='1.2',
-    author='Max Timkovich',
-    author_email='max@timkovi.ch',
+    url='https://github.com/arjun372/plex2letterboxd',
+    version='1.2.1',
+    author='Arjun Earthperson',
+    author_email='mail@earthperson.org',
     license='MIT',
     description='Export watched Plex movies to the Letterboxd import format.',
     long_description=README,

@@ -1,9 +1,27 @@
+**This repository was forked from 
+[https://github.com/mtimkovich/plex2letterboxd](https://github.com/mtimkovich/plex2letterboxd).**
 # Plex2Letterboxd
 
 Plex2Letterboxd is a Python script that exports watched movies from Plex to the [Letterboxd Import Format][import]. 
 The exported data includes the movie title, release year, user rating, and the last watched date. 
 This data is exported to a CSV file which can be easily imported into Letterboxd. However, until Letterboxd makes their
 API public, this CSV will need to be uploaded manually.
+
+## Table of Contents
+1. [Features](#features)
+2. [Prerequisites](#prerequisites)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [Usage](#usage)
+   - [Command Line Arguments](#command-line-arguments)
+   - [Output](#output)
+   - [Import into Letterboxd](#import-into-letterboxd)
+6. [Development](#development)
+   - [Testing](#testing)
+   - [Contributing](#contributing)
+7. [Authors](#authors)
+8. [License](#license)
+9. [Contact](#contact)
 
 ## Features
 
@@ -29,7 +47,8 @@ $ pip install .
 
 ## Configuration
 
-Rename `config.ini.example` to `config.ini` and fill it with your Plex server details:
+You can provide the configuration through a file or by passing arguments directly in the command line.  If you prefer to
+use a configuration file, rename `config.ini.example` to `config.ini` and fill it with your Plex server details:
 
 ```ini
 [auth]
@@ -38,28 +57,47 @@ token = YourPlexToken
 ```
 
 - `baseurl`: The URL of your Plex server.
-- `token`: Your Plex access token. You can find this by following [these instructions](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/).
+- `token`: Your Plex access token. You can find this by following 
+[these instructions](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/).
+
+Alternatively, you can provide the base URL and token directly as command line arguments when running the script:
+
+```console
+$ python -m plex2letterboxd -b BASE_URL -t TOKEN
+```
+If you provide the base URL as a command line argument, you must also provide the token in the same way.
 
 ## Usage
 
-Run the script with the configuration file:
+You can run the script using the command line. The script accepts several arguments to customize its behavior.
 
 ```console
-$ python -m plex2letterboxd -i config.ini
+$ python -m plex2letterboxd [OPTIONS]
 ```
 
 ### Command Line Arguments
 
+```console
+usage: __main__.py [-h] [-i INI | -b BASE_URL] [-t TOKEN] [-o OUTPUT] [-s SECTIONS [SECTIONS ...]] [-m MANAGED_USER]
+
+Export watched Plex movies to the Letterboxd import format.
+
+options:
+  -h, --help                                                        Show this help message and exit
+  -i INI, --ini INI                                                 Config file (default: None)
+  -b BASE_URL, --base-url BASE_URL                                  Plex server base URL (default: None)
+  -t TOKEN, --token TOKEN                                           Plex server token (default: None)
+  -o OUTPUT, --output OUTPUT                                        File to output to (default: letterboxd.csv)
+  -s SECTIONS [SECTIONS ...], --sections SECTIONS [SECTIONS ...]    Sections to grab from (default: ['Movies'])
+  -m MANAGED_USER, --managed-user MANAGED_USER                      Name of managed user to export (default: None)
 ```
-optional arguments:
-  -h, --help            show this help message and exit
-  -i INI, --ini INI     config file (default: config.ini)
-  -o OUTPUT, --output OUTPUT
-                        file to output to (default: letterboxd.csv)
-  -s [SECTIONS [SECTIONS ...]], --sections [SECTIONS [SECTIONS ...]]
-                        sections to grab from (default: ['Movies'])
-  -m, --managed-user    name of managed user to export
-```
+
+- `-i, --ini`: Path to the configuration file.
+- `-b, --base-url`: Plex server base URL. This argument is required if the configuration file is not provided.
+- `-t, --token`: Plex server token. This argument is required if the configuration file is not provided.
+- `-o, --output`: Path to the output file. If not provided, the default is `letterboxd.csv`.
+- `-s, --sections`: Sections to grab from. If not provided, the default is `['Movies']`.
+- `-m, --managed-user`: Name of the managed user to export, if any.
 
 The generated CSV file can be uploaded to Letterboxd at https://letterboxd.com/import/.
 
