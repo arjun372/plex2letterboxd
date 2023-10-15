@@ -1,5 +1,8 @@
-config.ini
-*.swp
-env
 *.csv
+*.egg-info
+*.swp
+.idea
 __pycache__
+config.ini
+env
+venv
