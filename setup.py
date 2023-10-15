@@ -14,6 +14,7 @@ setup(
     long_description=README,
     install_requires=[
             'plexapi==4.15.4',
+            'tqdm==4.66.1'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

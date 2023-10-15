@@ -8,6 +8,7 @@ from plexapi.myplex import MyPlexUser, MyPlexAccount
 from plexapi.server import PlexServer
 from typing import List, Any, Optional
 import concurrent.futures
+from tqdm import tqdm
 
 # Constants
 BASE_URL = 'baseurl'
@@ -76,11 +77,34 @@ def fetch_movie_details(movie: Any) -> List[Any]:
     """
     Fetch details of a movie.
 
+    This function takes a movie object as input and returns a list containing the movie's title, year, rating, and the
+    date it was last viewed.
+
+    The movie object is expected to have the following attributes:
+    - title: The title of the movie.
+    - year: The year the movie was released.
+    - userRating: The user's rating of the movie.
+    - lastViewedAt: The date the movie was last viewed.
+
+    The following rules are applied when creating the movie item:
+    - If the movie's title contains a comma, the title is enclosed in double quotes.
+    - If the movie has been viewed, the last viewed date is formatted as 'YYYY-MM-DD'. If the movie has not been viewed,
+      the date is set to None.
+    - If the movie has been rated by the user, the rating is rounded to the nearest whole number.
+      If the movie has not been rated, the rating is set to None.
+
     Args:
-        movie (Any): The movie object.
+        movie (Any): The movie object. For example:
+            {
+                "title": "The Shawshank Redemption",
+                "year": 1994,
+                "userRating": 9.3,
+                "lastViewedAt": datetime.datetime(2021, 1, 1, 0, 0)
+            }
 
     Returns:
-        List[Any]: A list containing movie title, year, rating and date.
+        List[Any]: A list containing movie title, year, rating and date. For example:
+            ["The Shawshank Redemption", 1994, "9", "2021-01-01"]
     """
     date: Optional[str] = None
     if movie.lastViewedAt is not None:
@@ -88,8 +112,10 @@ def fetch_movie_details(movie: Any) -> List[Any]:
     rating: Optional[str] = movie.userRating
     if rating is not None:
         rating = f'{movie.userRating:.0f}'
-    print(movie.title, movie.year, rating, date)
-    return [movie.title, movie.year, rating, date]
+    title: str = movie.title
+    if ',' in title:
+        title = f'"{title}"'
+    return [title, movie.year, rating, date]
 
 
 def fetch_section_details(sections: List[Any], max_workers: Optional[int] = 10) -> List[List[Any]]:
@@ -108,7 +134,7 @@ def fetch_section_details(sections: List[Any], max_workers: Optional[int] = 10) 
     for section in sections:
         found_movies: List[Any] = section.search(sort='lastViewedAt', unwatched=False)
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            movie_details: List[List[Any]] = list(executor.map(fetch_movie_details, found_movies))
+            movie_details: List[List[Any]] = list(tqdm(executor.map(fetch_movie_details, found_movies), total=len(found_movies), desc="Fetching movie details"))
             all_movie_details.extend(movie_details)
     return all_movie_details
 
@@ -156,8 +182,8 @@ def write_csv(sections: List[Any], output: str) -> None:
     """
     with open(output, 'w', newline='') as f:
         writer: csv.writer = csv.writer(f)
-        all_movie_details: List[List[Any]] = [['Title', 'Year', 'Rating10', 'WatchedDate']]
-        all_movie_details.extend(fetch_section_details(sections))
+        all_movie_details: List[List[Any]] = fetch_section_details(sections)
+        all_movie_details.insert(0, ['Title', 'Year', 'Rating10', 'WatchedDate'])
         writer.writerows(all_movie_details)
 
 

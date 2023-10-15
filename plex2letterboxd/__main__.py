@@ -1,4 +1,4 @@
-from . import plex2letterboxd
+from .plex2letterboxd import main
 
-if __name__ == '__main__':
-    plex2letterboxd.main()
+if __name__ == "__main__":
+    main()
